@@ -14,6 +14,8 @@
 
 - 下载 YouTube 视频及可用字幕
 - 当平台没有字幕时，使用开源 Whisper 生成视频原语言字幕
+- 本地 Whisper 统一安装在共享的 `work/.venv/`，不优先尝试 `mlx-whisper`
+- 转录时默认自动选模型：1 小时以内优先 `small`，超过 1 小时优先 `base`
 - 支持按用户指定的目标语言做本地化剪辑
 - 目标语言字幕默认由调用技能的 AI 生成
 - 可按需输出双语字幕
@@ -94,6 +96,9 @@ work/<video-slug>/
    如果用户对字幕语言有优先级要求，可以通过 `--subtitle-langs` 指定顺序。
 2. 如果视频没有可用字幕，生成原语言字幕。
   使用 [scripts/transcribe_subtitles.py](./scripts/transcribe_subtitles.py) 把字幕统一输出到 `work/<video-slug>/transcripts/`。
+  如果本机还没有 Whisper，就在共享的 `work/.venv/` 里安装标准 `openai-whisper`，不要先尝试 `mlx-whisper`。
+  后续再处理无字幕视频时，直接复用这个环境，避免每次重新安装。
+  没有显式指定 `--model` 时，脚本会自动按视频时长选择：1 小时以内用 `small`，超过 1 小时用 `base`。
 3. 生成目标语言字幕。
   默认由调用技能的 AI 按时间轴翻译生成 `source.<target>.srt` 或 `clip.<target>.srt`。
    如果你明确想走脚本方案，也可以使用 [scripts/translate_subtitles.py](./scripts/translate_subtitles.py) 作为可选辅助。
@@ -158,7 +163,7 @@ work/<video-slug>/
 - [scripts/parse_subtitles.py](./scripts/parse_subtitles.py)
 把 SRT 解析成结构化 JSON。
 - [scripts/transcribe_subtitles.py](./scripts/transcribe_subtitles.py)
-用 Whisper 为无字幕视频生成原语言字幕。
+用 Whisper 为无字幕视频生成原语言字幕，并按视频时长自动选择更合适的默认模型。
 - [scripts/translate_subtitles.py](./scripts/translate_subtitles.py)
 可选的字幕翻译辅助脚本，不是默认主路径。
 - [scripts/trim_subtitles.py](./scripts/trim_subtitles.py)
@@ -188,6 +193,7 @@ work/<video-slug>/
 - Python
 - `Pillow`
 - 当视频没有字幕时，需要可用的 Whisper 运行环境
+- 建议把标准 `openai-whisper` 安装在共享的 `work/.venv/` 中，不要优先安装 `mlx-whisper`
 
 ## 安装到 Codex
 

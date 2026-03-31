@@ -4,11 +4,57 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
+from typing import Optional
 
 
 def run(cmd: list[str]) -> int:
     print("Running:", " ".join(cmd))
     return subprocess.run(cmd).returncode
+
+
+def probe_duration_seconds(media_path: Path) -> Optional[float]:
+    ffprobe = shutil.which("ffprobe")
+    if not ffprobe:
+        return None
+
+    result = subprocess.run(
+        [
+            ffprobe,
+            "-v",
+            "error",
+            "-show_entries",
+            "format=duration",
+            "-of",
+            "default=noprint_wrappers=1:nokey=1",
+            str(media_path),
+        ],
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        return None
+
+    try:
+        duration = float(result.stdout.strip())
+    except ValueError:
+        return None
+    return duration if duration > 0 else None
+
+
+def choose_model(media_path: Path, requested_model: str) -> str:
+    if requested_model and requested_model != "auto":
+        return requested_model
+
+    duration_seconds = probe_duration_seconds(media_path)
+    if duration_seconds is not None and duration_seconds >= 3600:
+        print("Auto-selected Whisper model: base (video is longer than 1 hour)")
+        return "base"
+
+    if duration_seconds is not None:
+        print("Auto-selected Whisper model: small (video is 1 hour or shorter)")
+    else:
+        print("Auto-selected Whisper model: small (duration probe unavailable)")
+    return "small"
 
 
 def transcribe_with_whisper_cli(
@@ -68,7 +114,14 @@ def main() -> int:
     )
     parser.add_argument("input_media")
     parser.add_argument("output_srt")
-    parser.add_argument("--model", default="small")
+    parser.add_argument(
+        "--model",
+        default="auto",
+        help=(
+            "Whisper model name. Defaults to auto: use base for videos longer than "
+            "1 hour, otherwise small."
+        ),
+    )
     parser.add_argument(
         "--language",
         default="",
@@ -86,8 +139,9 @@ def main() -> int:
     output_srt = Path(args.output_srt).expanduser().resolve()
     output_dir = output_srt.parent
     output_dir.mkdir(parents=True, exist_ok=True)
+    model = choose_model(media_path, args.model)
 
-    code = transcribe_with_whisper_cli(media_path, output_dir, model=args.model, language=args.language, task=args.task)
+    code = transcribe_with_whisper_cli(media_path, output_dir, model=model, language=args.language, task=args.task)
     if code != 0:
         print("whisper transcription failed", file=sys.stderr)
         return code

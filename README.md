@@ -17,6 +17,8 @@ Instead of relying on optional text filters, the hard-sub pipeline renders trans
 - Can prioritize user-specified subtitle language groups when downloading platform subtitle tracks
 - Can generate SRT subtitles with a local Whisper-compatible transcription runtime
 - Supports Whisper `transcribe` and `translate` tasks so subtitle-free videos can still produce source-language or English companion subtitle tracks when needed
+- Keeps local Whisper installs inside a shared `work/.venv/` instead of spreading them across the machine
+- Auto-picks Whisper `base` for videos longer than 1 hour and `small` for shorter videos unless you override `--model`
 - Lets the calling AI translate subtitles into a user-specified target language while preserving timing
 - Keeps translation flexible: script-driven translation helpers are optional, not required
 - Parses subtitle files into structured JSON for clip selection
@@ -54,6 +56,7 @@ Example generated artifact layout:
 - `ffmpeg` available in the environment, or resolvable through `imageio-ffmpeg`
 - Python with `Pillow` available for text overlay rendering
 - An open-source Whisper runtime available when subtitle-free videos need local transcription
+  Prefer installing the standard `openai-whisper` package inside `work/.venv/` rather than using `mlx-whisper`
 
 ## Skill Trigger
 
@@ -103,7 +106,7 @@ Use $global-clip-forge to turn this YouTube interview URL into 5 to 8 Japanese-s
 - [scripts/parse_subtitles.py](./scripts/parse_subtitles.py)
   Parses SRT files into structured JSON cues with both timestamp strings and numeric seconds.
 - [scripts/transcribe_subtitles.py](./scripts/transcribe_subtitles.py)
-  Generates subtitle SRT files for subtitle-free videos using an open-source Whisper runtime and keeps them inside the work tree.
+  Generates subtitle SRT files for subtitle-free videos using an open-source Whisper runtime, keeps them inside the work tree, and auto-selects `base` for videos longer than 1 hour or `small` otherwise.
 - [scripts/translate_subtitles.py](./scripts/translate_subtitles.py)
   Optional helper for script-driven subtitle translation when you want automation beyond the default AI-driven translation flow.
 - [scripts/trim_subtitles.py](./scripts/trim_subtitles.py)
@@ -153,7 +156,10 @@ Or install it with your preferred Codex skill import flow from GitHub.
 - The downloader prefers Chrome cookies and may need refreshed browser login state if YouTube blocks downloads.
 - Subtitle download can follow a user-specified priority such as `ja` first, then `en`, then `zh-Hans`.
 - If a video has no usable subtitles, use `scripts/transcribe_subtitles.py` and keep the generated SRT inside `work/<video-slug>/transcripts/`.
+- If Whisper is missing, create `work/.venv/` and install the standard `openai-whisper` package there instead of installing a separate machine-wide runtime.
+- Reuse that shared `work/.venv/` for later subtitle-free videos so Whisper does not need to be reinstalled each time.
 - `scripts/transcribe_subtitles.py` supports both `transcribe` and `translate` tasks depending on whether you need same-language subtitles or an English companion track.
+- Unless you explicitly pass `--model`, `scripts/transcribe_subtitles.py` uses `small` for videos up to 1 hour and `base` for longer videos.
 - By default, target-language subtitle translation is performed by the calling AI. `scripts/translate_subtitles.py` is optional if you want a script-driven translation backend.
 - Subtitle parsing preserves line breaks so stacked bilingual subtitles can stay readable after merge.
 - The hard-sub renderer defaults to subtitle-only exports and only adds a title card when `--title` is passed.

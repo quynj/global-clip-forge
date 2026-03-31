@@ -13,6 +13,8 @@ Key implementation points to keep in sync with the repository:
 - The downloader can accept user-specified subtitle language priorities instead of being locked to English and Chinese.
 - The source fetch path prefers Chrome cookies and uses the Android client route for a simpler MP4 download.
 - The transcription helper supports both Whisper `transcribe` and `translate` tasks.
+- When local transcription is needed, use the shared virtual environment under `work/.venv/` and install the standard `openai-whisper` package there instead of trying `mlx-whisper` first.
+- For subtitle-free videos longer than 1 hour, prefer Whisper `base` to keep local transcription practical. For videos up to 1 hour, prefer `small` for better subtitle quality.
 - Target-language translation is normally done by the calling AI so the workflow stays flexible across languages and environments.
 - `translate_subtitles.py` remains available as an optional helper when you explicitly want a script-driven subtitle translation step.
 - The hard-sub renderer uses transparent PNG overlays with `ffmpeg overlay`, so it does not depend on `libass` or `drawtext`.
@@ -60,6 +62,8 @@ Identify:
 
 6. If the video has no usable subtitles, transcribe it locally.
 Run [transcribe_subtitles.py](./scripts/transcribe_subtitles.py) against the downloaded video and save the generated SRT into `work/<video-slug>/transcripts/`. Use the default `transcribe` task to create source-language subtitles, or `translate` when you specifically need Whisper to emit English subtitles from non-English speech. Keep all original, translated, and merged subtitle artifacts in that `transcripts/` folder for unified management.
+If Whisper is not already available, create and use `work/.venv/` as the shared local install location, then install the standard `openai-whisper` package there. Reuse that environment across subtitle-free tasks instead of reinstalling for each video. Do not try `mlx-whisper` first.
+When you do not explicitly pass `--model`, let the helper auto-pick `small` for videos up to 1 hour and `base` for videos longer than 1 hour.
 
 7. Create the target-language subtitle track.
 If the target audience language differs from the source language, have the calling AI translate the subtitle text into the target language while preserving timestamps and write `source.<target>.srt` or `clip.<target>.srt`. Use the translated target-language file for packaging copy and for the title card text. If you explicitly want a script-driven translation step, [translate_subtitles.py](./scripts/translate_subtitles.py) can still be used as an optional helper.
@@ -123,6 +127,8 @@ work/<video-slug>/
 ## Script Notes
 
 - Run the helper scripts from the skill root with `PYTHONPATH="$PWD"` when using `python3 -m scripts.<name>`.
+- For local transcription tasks, keep Python packages isolated inside the shared `work/.venv/` instead of installing Whisper globally on the machine.
+- Prefer the standard `openai-whisper` package inside that shared venv. Only deviate if the user explicitly asks for another runtime.
 - Prefer a font that comfortably supports the target audience language. If no better font is available, let the script fall back to the system default.
 - The hard-sub renderer now defaults to subtitle-only exports. Only pass `--title` when the user explicitly wants an opening title card.
 - If a title card is used, keep it in the target language only instead of rendering bilingual title text.
@@ -130,6 +136,7 @@ work/<video-slug>/
 - When `clip.<target-lang>.srt` or `clip.bilingual.srt` is already prepared, proceed directly to `clip.hardsub.mp4` creation instead of pausing for another user confirmation.
 - The downloader uses Chrome cookies when available. If download fails because cookies are stale, refresh browser login state before changing the workflow.
 - `ffmpeg` can come from either the system path or the `imageio-ffmpeg` fallback helper.
+- `transcribe_subtitles.py` now auto-selects Whisper `base` for videos longer than 1 hour and `small` otherwise, unless the user explicitly overrides `--model`.
 
 ## Resources
 
