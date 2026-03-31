@@ -11,6 +11,7 @@ TITLE_FILL = (255, 224, 130, 255)
 PANEL_FILL = (14, 16, 20, 190)
 PANEL_STROKE = (255, 214, 102, 220)
 SHADOW_FILL = (0, 0, 0, 110)
+BILINGUAL_SECONDARY_FILL = (205, 214, 227, 255)
 
 
 def load_font(size: int, fontfile: str = "") -> ImageFont.ImageFont:
@@ -55,6 +56,28 @@ def wrap_text(
     return lines
 
 
+def layout_lines(
+    draw: ImageDraw.ImageDraw,
+    text: str,
+    primary_font: ImageFont.ImageFont,
+    secondary_font: ImageFont.ImageFont,
+    max_width: int,
+    position: str,
+) -> list[dict]:
+    sections = [section.strip() for section in text.splitlines()]
+    sections = [section for section in sections if section]
+    if not sections:
+        sections = [text.strip()]
+
+    laid_out = []
+    for idx, section in enumerate(sections):
+        use_secondary = position == "bottom" and len(sections) > 1 and idx > 0
+        font = secondary_font if use_secondary else primary_font
+        for wrapped in wrap_text(draw, section, font, max_width=max_width):
+            laid_out.append({"text": wrapped, "font": font, "secondary": use_secondary})
+    return laid_out
+
+
 def draw_rounded_panel(
     draw: ImageDraw.ImageDraw,
     box: tuple[int, int, int, int],
@@ -82,12 +105,14 @@ def render_text_overlay(
     image = Image.new("RGBA", (width, height), (0, 0, 0, 0))
     draw = ImageDraw.Draw(image)
     font = load_font(fontsize, fontfile=fontfile)
-    lines = wrap_text(draw, text, font, max_width=width - 60)
+    secondary_font = load_font(max(14, fontsize - 4), fontfile=fontfile)
+    lines = layout_lines(draw, text, font, secondary_font, max_width=width - 60, position=position)
 
     line_gap = 10
     metrics = []
     for line in lines:
-        bbox = draw.textbbox((0, 0), line, font=font, stroke_width=3)
+        stroke_width = 2 if position == "center" else 3
+        bbox = draw.textbbox((0, 0), line["text"], font=line["font"], stroke_width=stroke_width)
         metrics.append((bbox[2] - bbox[0], bbox[3] - bbox[1]))
 
     max_line_width = max((line_width for line_width, _ in metrics), default=0)
@@ -128,9 +153,9 @@ def render_text_overlay(
         x = (width - line_width) // 2
         draw.text(
             (x, y),
-            line,
-            font=font,
-            fill=TITLE_FILL if position == "center" else SUBTITLE_FILL,
+            line["text"],
+            font=line["font"],
+            fill=TITLE_FILL if position == "center" else (BILINGUAL_SECONDARY_FILL if line["secondary"] else SUBTITLE_FILL),
             stroke_width=2 if position == "center" else 3,
             stroke_fill=(0, 0, 0, 170 if position == "center" else 220),
         )

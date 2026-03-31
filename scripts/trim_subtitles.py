@@ -38,17 +38,20 @@ def main() -> int:
         # Clip every cue into the local clip timeline so the output SRT starts
         # near zero instead of preserving the source video's absolute times.
         selected.append(
-            (
-                max(0.0, cue["start_seconds"] - start_sec),
-                max(0.0, min(end_sec, cue["end_seconds"]) - start_sec),
-                cue["text"],
-            )
+            {
+                "start_seconds": max(0.0, cue["start_seconds"] - start_sec),
+                "end_seconds": max(0.0, min(end_sec, cue["end_seconds"]) - start_sec),
+                "text": cue["text"],
+            }
         )
 
     dst.parent.mkdir(parents=True, exist_ok=True)
     lines = []
-    for i, (s, e, text) in enumerate(selected, start=1):
-        lines.extend([str(i), f"{fmt_time(s)} --> {fmt_time(e)}", text, ""])
+    for i, cue in enumerate(selected, start=1):
+        lines.append(str(i))
+        lines.append(f"{fmt_time(cue['start_seconds'])} --> {fmt_time(cue['end_seconds'])}")
+        lines.extend(cue["text"].splitlines() or [""])
+        lines.append("")
     dst.write_text("\n".join(lines).strip() + "\n", encoding="utf-8")
     print(dst)
     return 0

@@ -35,7 +35,9 @@ def parse_srt(text: str):
                 "end": f"{match['eh']}:{match['em']}:{match['es']},{match['ems']}",
                 "start_seconds": to_seconds(match["sh"], match["sm"], match["ss"], match["sms"]),
                 "end_seconds": to_seconds(match["eh"], match["em"], match["es"], match["ems"]),
-                "text": " ".join(text_lines).strip(),
+                # Preserve author-intended line breaks so bilingual subtitles
+                # can stay stacked instead of being flattened into one line.
+                "text": "\n".join(text_lines).strip(),
             }
         )
     return cues

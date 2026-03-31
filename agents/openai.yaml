@@ -1,7 +1,7 @@
 interface:
-  display_name: "Zh Clip Forge"
-  short_description: "把长访谈批量剪成中文硬字幕短视频"
-  default_prompt: "Use $zh-clip-forge to turn this YouTube interview URL into 5 to 8 Chinese-subbed short clips."
+  display_name: "Global Clip Forge"
+  short_description: "Batch cut long interviews into target language hardsubbed short videos"
+  default_prompt: "Use $global-clip-forge to turn this YouTube interview URL into 5 to 8 short clips for a target audience language, with bilingual subtitles when helpful."
 
 policy:
   allow_implicit_invocation: true

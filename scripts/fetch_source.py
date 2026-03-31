@@ -6,14 +6,17 @@ import sys
 from pathlib import Path
 
 
+DEFAULT_SUBTITLE_LANG_GROUPS = ["en,en-US,en-orig", "zh-Hans,zh-CN,zh"]
+
+
 def run(cmd: list[str]) -> int:
     print("Running:", " ".join(cmd))
     return subprocess.run(cmd).returncode
 
 
-def download_subtitles(yt_dlp: str, url: str, output_tpl: str) -> int:
-    # Prefer English for downstream analysis, then fall back to Simplified Chinese
-    # when English is unavailable.
+def download_subtitles(yt_dlp: str, url: str, output_tpl: str, subtitle_lang_groups: list[str]) -> int:
+    # Prefer the caller's ordered subtitle language groups so the workflow can
+    # target the audience's language instead of being hard-coded to English/Chinese.
     base = [
         yt_dlp,
         "--no-playlist",
@@ -27,7 +30,7 @@ def download_subtitles(yt_dlp: str, url: str, output_tpl: str) -> int:
         "-o",
         output_tpl,
     ]
-    for langs in ("en,en-US,en-orig", "zh-Hans,zh-CN,zh"):
+    for langs in subtitle_lang_groups:
         code = run(base + ["--sub-langs", langs, url])
         if code == 0:
             return 0
@@ -54,6 +57,16 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Download a YouTube video and subtitles.")
     parser.add_argument("url", help="YouTube URL")
     parser.add_argument("output_dir", help="Directory to save source assets")
+    parser.add_argument(
+        "--subtitle-langs",
+        action="append",
+        default=[],
+        help=(
+            "Preferred subtitle language groups in priority order, for example "
+            "--subtitle-langs 'ja,ja-JP' --subtitle-langs 'en,en-US'. "
+            "Defaults to English first, then Simplified Chinese."
+        ),
+    )
     args = parser.parse_args()
 
     output_dir = Path(args.output_dir).expanduser().resolve()
@@ -66,10 +79,10 @@ def main() -> int:
         return 1
 
     output_tpl = str(output_dir / "%(title)s [%(id)s].%(ext)s")
-    sub_code = download_subtitles(yt_dlp, args.url, output_tpl)
+    subtitle_lang_groups = args.subtitle_langs or DEFAULT_SUBTITLE_LANG_GROUPS
+    sub_code = download_subtitles(yt_dlp, args.url, output_tpl, subtitle_lang_groups=subtitle_lang_groups)
     if sub_code != 0:
-        print("subtitle download failed", file=sys.stderr)
-        return sub_code
+        print("subtitle download failed; continuing with video-only source fetch", file=sys.stderr)
 
     video_code = download_video(yt_dlp, args.url, output_tpl)
     if video_code != 0:

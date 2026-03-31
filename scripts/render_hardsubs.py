@@ -25,6 +25,8 @@ def main() -> int:
     parser.add_argument("output_video")
     parser.add_argument("--title", default="")
     parser.add_argument("--fontfile", default="")
+    parser.add_argument("--subtitle-fontsize", type=int, default=20)
+    parser.add_argument("--title-fontsize", type=int, default=28)
     args = parser.parse_args()
 
     src = Path(args.input_video)
@@ -49,7 +51,13 @@ def main() -> int:
         title_png = work_dir / "title.png"
         # Render the first-second title as a transparent full-frame PNG so we
         # only rely on ffmpeg's basic overlay filter, not optional text filters.
-        render_text_overlay(title_png, args.title, position="center", fontsize=30, fontfile=args.fontfile)
+        render_text_overlay(
+            title_png,
+            args.title,
+            position="center",
+            fontsize=args.title_fontsize,
+            fontfile=args.fontfile,
+        )
         input_cmd.extend(["-loop", "1", "-i", str(title_png)])
         next_label = f"[v{input_index}]"
         filter_parts.append(f"{current_label}[{input_index}:v]overlay=0:0:enable='between(t,0,1)'{next_label}")
@@ -60,7 +68,13 @@ def main() -> int:
         png = work_dir / f"sub-{idx:02d}.png"
         # Pre-render every cue to an RGBA image so subtitle burning still works
         # on ffmpeg builds that do not include libass or drawtext support.
-        render_text_overlay(png, cue["text"], position="bottom", fontsize=24, fontfile=args.fontfile)
+        render_text_overlay(
+            png,
+            cue["text"],
+            position="bottom",
+            fontsize=args.subtitle_fontsize,
+            fontfile=args.fontfile,
+        )
         input_cmd.extend(["-loop", "1", "-i", str(png)])
         next_label = f"[v{input_index}]"
         filter_parts.append(

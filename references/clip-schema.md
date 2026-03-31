@@ -11,12 +11,12 @@
     "start_seconds": 723.0,
     "end_seconds": 802.5,
     "duration_seconds": 79.5,
-    "title": "一句能钩住人的工作标题",
+    "title": "A working title in the target audience language",
     "summary": [
-      "第一句说明这段在讲什么。",
-      "第二句说明为什么值得切出来。"
+      "Sentence one explains what the clip is about.",
+      "Sentence two explains why it is worth cutting out."
     ],
-    "reason": "为什么它适合做 shorts"
+    "reason": "Why this moment works as a short-form clip"
   }
 ]
 ```
@@ -24,6 +24,8 @@
 Rules:
 
 - `id` must be unique and stable.
+- `title` should be written in the target audience language.
 - `summary` must contain exactly two sentences.
+- `summary` should follow the target audience language unless the caller explicitly wants another review language.
 - Timestamps must describe a complete thought.
 - Prefer `20` to `180` seconds per clip.

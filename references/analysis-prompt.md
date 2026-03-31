@@ -17,6 +17,7 @@ For each candidate provide:
 
 ## Translation Notes
 
-- Translate into natural spoken Simplified Chinese.
+- Translate into natural spoken language for the target audience requested by the user.
 - Keep timestamps unchanged unless tiny cue balancing is needed.
 - Preserve names, numbers, products, and quoted claims accurately.
+- If a title card is used, keep it in the target language only instead of making it bilingual.
