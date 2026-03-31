@@ -30,6 +30,24 @@ Instead of relying on optional text filters, the hard-sub pipeline renders trans
 - Uses transparent PNG overlay rendering so exports still work when `ffmpeg` lacks `libass`, `subtitles`, or `drawtext`
 - Can resolve `ffmpeg` from either the system path or `imageio-ffmpeg`
 
+## Showcase
+
+Example hard-sub result:
+
+![Sample hard-sub result](docs/assets/result-preview-1.png)
+
+Example generated artifact layout:
+
+![Sample generated artifact layout](docs/assets/result-preview-2.png)
+
+- `work/<video-slug>/analysis/selected_clips.json`
+- `work/<video-slug>/analysis/candidate-review.txt`
+- `work/<video-slug>/analysis/clip-packaging.txt`
+- `work/<video-slug>/clips/01-<slug>/clip.hardsub.mp4`
+- `work/<video-slug>/clips/01-<slug>/clip.<source-lang>.srt`
+- `work/<video-slug>/clips/01-<slug>/clip.<target-lang>.srt`
+- `work/<video-slug>/clips/01-<slug>/clip.bilingual.srt`
+
 ## Runtime Requirements
 
 - `yt-dlp` available in the environment

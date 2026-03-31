@@ -22,6 +22,26 @@
 - 标题卡只使用目标语言，不使用双语标题
 - 一旦字幕文件准备完成，应直接继续烧录最终视频，不需要再次确认
 
+## 成果物展示
+
+硬字幕成片示例：
+
+![硬字幕成片示例](docs/assets/result-preview-1.png)
+
+成果目录示例：
+
+![成果目录示例](docs/assets/result-preview-2.png)
+
+典型成果目录包括：
+
+- `work/<video-slug>/analysis/selected_clips.json`
+- `work/<video-slug>/analysis/candidate-review.txt`
+- `work/<video-slug>/analysis/clip-packaging.txt`
+- `work/<video-slug>/clips/01-<slug>/clip.hardsub.mp4`
+- `work/<video-slug>/clips/01-<slug>/clip.<source-lang>.srt`
+- `work/<video-slug>/clips/01-<slug>/clip.<target-lang>.srt`
+- `work/<video-slug>/clips/01-<slug>/clip.bilingual.srt`
+
 ## 适用场景
 
 适合以下任务：
@@ -200,4 +220,3 @@ work/<video-slug>/
 - [agents/openai.yaml](./agents/openai.yaml)
 - [references/clip-schema.md](./references/clip-schema.md)
 - [references/analysis-prompt.md](./references/analysis-prompt.md)
-
