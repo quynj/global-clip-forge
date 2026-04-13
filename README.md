@@ -10,6 +10,12 @@ It helps you download a source video, parse subtitles or transcript data, transc
 The current implementation is designed to work in environments where `ffmpeg` may not include `libass` or `drawtext`.
 Instead of relying on optional text filters, the hard-sub pipeline renders transparent PNG text overlays and composites them with `ffmpeg overlay`.
 
+## Install
+
+```bash
+npx skills add https://github.com/quynj/global-clip-forge -g -y
+```
+
 ## New Features And Highlights
 
 - Downloads the source video and available subtitles from YouTube

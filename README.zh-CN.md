@@ -10,6 +10,12 @@
 当前实现刻意避免依赖 `ffmpeg` 的 `libass` 或 `drawtext`。
 字幕和标题会先渲染成透明 PNG，再通过 `ffmpeg overlay` 叠加到视频上，因此兼容性更高。
 
+## 安装方式
+
+```bash
+npx skills add https://github.com/quynj/global-clip-forge -g -y
+```
+
 ## 核心能力
 
 - 下载 YouTube 视频及可用字幕
